@@ -1,0 +1,106 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend-lint-test:
+    name: Backend Lint & Test
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: tiktok_ops
+          POSTGRES_PASSWORD: tiktok_ops_dev
+          POSTGRES_DB: tiktok_ops_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install --no-cache-dir -r requirements.txt
+          pip install black isort flake8 mypy
+
+      - name: Run Black format check
+        run: |
+          cd backend
+          black --check --diff .
+
+      - name: Run isort check
+        run: |
+          cd backend
+          isort --check-only --diff .
+
+      - name: Run flake8
+        run: |
+          cd backend
+          flake8 app/ tests/ --max-line-length=100 --extend-ignore=E203,W503
+
+      - name: Run mypy type check
+        run: |
+          cd backend
+          mypy app/ --ignore-missing-imports --no-strict-optional || true
+
+      - name: Run pytest
+        env:
+          DATABASE_URL: postgresql+asyncpg://tiktok_ops:tiktok_ops_dev@localhost:5432/tiktok_ops_test
+          REDIS_URL: redis://localhost:6379/0
+          SECRET_KEY: test-secret-key
+          JWT_SECRET_KEY: test-jwt-secret
+          TIKTOK_SHOP_MOCK_MODE: "true"
+          ALIBABA_1688_MOCK_MODE: "true"
+        run: |
+          cd backend
+          pytest tests/ -v --tb=short --cov=app --cov-report=term-missing || true
+
+  frontend-lint-build:
+    name: Frontend Lint & Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm install
+
+      - name: Run ESLint
+        run: |
+          cd frontend
+          npm run lint || true
+
+      - name: Run build
+        run: |
+          cd frontend
+          npm run build

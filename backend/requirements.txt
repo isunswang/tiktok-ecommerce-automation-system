@@ -1,0 +1,52 @@
+# FastAPI Backend Dependencies
+# Web Framework
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+python-multipart==0.0.12
+
+# Database
+sqlalchemy[asyncio]==2.0.35
+asyncpg==0.29.0
+alembic==1.13.2
+
+# Redis
+redis==5.1.1
+
+# Celery
+celery[redis]==5.3.6
+
+# Security
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
+# Validation
+pydantic==2.9.2
+pydantic-settings==2.5.2
+email-validator==2.2.0
+
+# MinIO
+minio==7.2.9
+
+# HTTP Client
+httpx==0.27.2
+
+# Utilities
+python-dotenv==1.0.1
+uuid6==2024.1.12
+
+# Development
+pytest==8.3.3
+pytest-asyncio==0.24.0
+httpx==0.27.2
+factory-boy==3.3.1
+faker==28.4.1
+
+# AI & Translation
+openai>=1.30.0
+paddleocr>=2.7.0
+paddlepaddle>=2.5.0
+pytesseract>=0.3.10
+Pillow>=10.0.0
+
+# Async support
+aiofiles>=23.0.0

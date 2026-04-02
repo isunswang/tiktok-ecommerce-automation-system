@@ -1,0 +1,1113 @@
+openapi: "3.0.3"
+info:
+  title: TikTok跨境电商全自动运营系统 API
+  description: |
+    TikTok跨境电商全自动运营系统MVP版本API接口契约。
+    覆盖核心业务模块：认证、商品、订单、定价、上架、履约、客服、财务。
+  version: "1.0.0"
+  contact:
+    name: Dev Team
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: 本地开发环境
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Auth
+    description: 用户认证
+  - name: Products
+    description: 商品管理
+  - name: Orders
+    description: 订单管理
+  - name: Pricing
+    description: 定价管理
+  - name: Listing
+    description: 商品上架
+  - name: Fulfillment
+    description: 履约管理
+  - name: CustomerService
+    description: 客服管理
+  - name: Finance
+    description: 财务管理
+
+paths:
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: 用户登录
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: 用户注册
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: 注册成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: 刷新Token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refresh_token]
+              properties:
+                refresh_token:
+                  type: string
+      responses:
+        "200":
+          description: 刷新成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: 获取当前用户信息
+      responses:
+        "200":
+          description: 用户信息
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /products:
+    get:
+      tags: [Products]
+      summary: 商品列表
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/PageSizeParam"
+        - name: keyword
+          in: query
+          schema:
+            type: string
+          description: 搜索关键词
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, active, inactive, listed, delisted]
+        - name: category_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: sort_by
+          in: query
+          schema:
+            type: string
+            enum: [created_at, name, sale_price, score]
+            default: created_at
+        - name: sort_order
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+      responses:
+        "200":
+          description: 商品列表
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedProducts"
+    post:
+      tags: [Products]
+      summary: 创建商品
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductCreate"
+      responses:
+        "201":
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+
+  /products/{product_id}:
+    get:
+      tags: [Products]
+      summary: 商品详情
+      parameters:
+        - $ref: "#/components/parameters/ProductIdParam"
+      responses:
+        "200":
+          description: 商品详情
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      tags: [Products]
+      summary: 更新商品
+      parameters:
+        - $ref: "#/components/parameters/ProductIdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductUpdate"
+      responses:
+        "200":
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+
+  /products/{product_id}/materials:
+    post:
+      tags: [Products]
+      summary: 生成AI素材
+      parameters:
+        - $ref: "#/components/parameters/ProductIdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                target_market:
+                  type: string
+                  example: "US"
+                  description: 目标市场国家代码
+                generate_title:
+                  type: boolean
+                  default: true
+                generate_description:
+                  type: boolean
+                  default: true
+                generate_images:
+                  type: boolean
+                  default: false
+      responses:
+        "200":
+          description: 素材生成结果
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MaterialResult"
+
+  /products/{product_id}/listing:
+    post:
+      tags: [Listing]
+      summary: 上架到TikTok Shop
+      parameters:
+        - $ref: "#/components/parameters/ProductIdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [target_site, category_id]
+              properties:
+                target_site:
+                  type: string
+                  description: 目标站点
+                  example: "US"
+                category_id:
+                  type: string
+                  format: uuid
+                  description: TikTok类目ID
+      responses:
+        "200":
+          description: 上架结果
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tiktok_product_id:
+                    type: string
+                  status:
+                    type: string
+                    enum: [pending_review, active, failed]
+                  message:
+                    type: string
+
+  /orders:
+    get:
+      tags: [Orders]
+      summary: 订单列表
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/PageSizeParam"
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, confirmed, purchased, shipped, completed, cancelled]
+        - name: date_from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: date_to
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: 按订单号或商品名搜索
+      responses:
+        "200":
+          description: 订单列表
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedOrders"
+
+  /orders/{order_id}:
+    get:
+      tags: [Orders]
+      summary: 订单详情
+      parameters:
+        - $ref: "#/components/parameters/OrderIdParam"
+      responses:
+        "200":
+          description: 订单详情
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderDetail"
+
+  /orders/{order_id}/status:
+    put:
+      tags: [Orders]
+      summary: 更新订单状态
+      parameters:
+        - $ref: "#/components/parameters/OrderIdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [confirmed, purchased, shipped, completed, cancelled]
+                remark:
+                  type: string
+      responses:
+        "200":
+          description: 状态更新成功
+
+  /pricing/calculate:
+    post:
+      tags: [Pricing]
+      summary: 成本核算
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PricingCalculationRequest"
+      responses:
+        "200":
+          description: 成本核算结果
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PricingCalculation"
+
+  /pricing/suggestions:
+    get:
+      tags: [Pricing]
+      summary: 定价建议
+      parameters:
+        - name: product_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: target_market
+          in: query
+          schema:
+            type: string
+            example: "US"
+      responses:
+        "200":
+          description: 定价建议
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PricingSuggestion"
+
+  /fulfillment/purchase-orders:
+    get:
+      tags: [Fulfillment]
+      summary: 采购单列表
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/PageSizeParam"
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, ordered, shipped, received]
+      responses:
+        "200":
+          description: 采购单列表
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedResponse"
+    post:
+      tags: [Fulfillment]
+      summary: 创建1688采购单
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [order_ids]
+              properties:
+                order_ids:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                  description: 关联的TikTok订单ID列表
+      responses:
+        "201":
+          description: 采购单创建成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurchaseOrder"
+
+  /fulfillment/shipments:
+    get:
+      tags: [Fulfillment]
+      summary: 物流列表
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/PageSizeParam"
+      responses:
+        "200":
+          description: 物流列表
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedResponse"
+
+  /customer-service/sessions:
+    get:
+      tags: [CustomerService]
+      summary: 客服会话列表
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/PageSizeParam"
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, closed, escalated]
+      responses:
+        "200":
+          description: 会话列表
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedResponse"
+
+  /finance/summary:
+    get:
+      tags: [Finance]
+      summary: 财务概览
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [today, week, month, quarter, year]
+            default: month
+      responses:
+        "200":
+          description: 财务概览
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FinanceSummary"
+
+  /finance/transactions:
+    get:
+      tags: [Finance]
+      summary: 交易流水
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/PageSizeParam"
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [income, cost, refund, fee]
+        - name: date_from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: date_to
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: 交易流水
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedResponse"
+
+  /health:
+    get:
+      tags: [System]
+      summary: 健康检查
+      security: []
+      responses:
+        "200":
+          description: 服务健康
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "healthy"
+                  version:
+                    type: string
+                  services:
+                    type: object
+                    properties:
+                      database:
+                        type: string
+                      redis:
+                        type: string
+                      minio:
+                        type: string
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    PageSizeParam:
+      name: page_size
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    ProductIdParam:
+      name: product_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    OrderIdParam:
+      name: order_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+          example: "admin@example.com"
+        password:
+          type: string
+          format: password
+          example: "securepass123"
+
+    RegisterRequest:
+      type: object
+      required: [username, password, nickname]
+      properties:
+        username:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+          minLength: 8
+        nickname:
+          type: string
+
+    TokenResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        token_type:
+          type: string
+          example: "bearer"
+        expires_in:
+          type: integer
+          example: 1800
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        username:
+          type: string
+        nickname:
+          type: string
+        role:
+          type: string
+          enum: [admin, operator, cs_agent, finance]
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        category_id:
+          type: string
+          format: uuid
+        supplier_id:
+          type: string
+          format: uuid
+        cost_price:
+          type: number
+          format: decimal
+        sale_price:
+          type: number
+          format: decimal
+        status:
+          type: string
+          enum: [draft, active, inactive, listed, delisted]
+        score:
+          type: number
+          description: 选品评分(1-10)
+        tiktok_product_id:
+          type: string
+          nullable: true
+        source_url:
+          type: string
+          description: 1688商品链接
+        skus:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProductSKU"
+        images:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProductImage"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ProductSKU:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        sku_code:
+          type: string
+        specs:
+          type: string
+          description: JSON格式的规格键值对
+        cost_price:
+          type: number
+          format: decimal
+        sale_price:
+          type: number
+          format: decimal
+        stock:
+          type: integer
+
+    ProductImage:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        url:
+          type: string
+          format: uri
+        image_type:
+          type: string
+          enum: [main, detail, ai_generated]
+        sort_order:
+          type: integer
+
+    ProductCreate:
+      type: object
+      required: [name, category_id]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        category_id:
+          type: string
+          format: uuid
+        supplier_id:
+          type: string
+          format: uuid
+        source_url:
+          type: string
+        skus:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProductSKU"
+
+    ProductUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        sale_price:
+          type: number
+          format: decimal
+        status:
+          type: string
+
+    MaterialResult:
+      type: object
+      properties:
+        titles:
+          type: array
+          items:
+            type: object
+            properties:
+              content:
+                type: string
+              language:
+                type: string
+              score:
+                type: number
+        descriptions:
+          type: array
+          items:
+            type: object
+            properties:
+              selling_points:
+                type: array
+                items:
+                  type: string
+              language:
+                type: string
+        images:
+          type: array
+          items:
+            type: object
+            properties:
+              url:
+                type: string
+              image_type:
+                type: string
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tiktok_order_id:
+          type: string
+        status:
+          type: string
+          enum: [pending, confirmed, purchased, shipped, completed, cancelled]
+        total_amount:
+          type: number
+          format: decimal
+        currency:
+          type: string
+          example: "USD"
+        buyer_name:
+          type: string
+        shipping_address:
+          type: string
+        item_count:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+
+    OrderDetail:
+      allOf:
+        - $ref: "#/components/schemas/Order"
+        - type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/OrderItem"
+            status_history:
+              type: array
+              items:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  changed_by:
+                    type: string
+                  changed_at:
+                    type: string
+                    format: date-time
+                  remark:
+                    type: string
+
+    OrderItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        product_name:
+          type: string
+        sku_code:
+          type: string
+        quantity:
+          type: integer
+        unit_price:
+          type: number
+          format: decimal
+        subtotal:
+          type: number
+          format: decimal
+
+    PricingCalculationRequest:
+      type: object
+      required: [cost_price_cny, target_market, logistics_cost_cny]
+      properties:
+        cost_price_cny:
+          type: number
+          format: decimal
+          description: 采购成本(人民币)
+        target_market:
+          type: string
+          description: 目标市场
+          example: "US"
+        logistics_cost_cny:
+          type: number
+          format: decimal
+          description: 国际物流成本(人民币)
+        customs_rate:
+          type: number
+          format: decimal
+          description: 关税税率
+          default: 0.1
+        platform_commission_rate:
+          type: number
+          format: decimal
+          description: 平台佣金费率
+          default: 0.05
+        target_profit_rate:
+          type: number
+          format: decimal
+          description: 目标利润率
+          default: 0.3
+
+    PricingCalculation:
+      type: object
+      properties:
+        cost_breakdown:
+          type: object
+          properties:
+            purchase_cost_cny:
+              type: number
+              format: decimal
+            logistics_cost_cny:
+              type: number
+              format: decimal
+            customs_cost_cny:
+              type: number
+              format: decimal
+            platform_commission_cny:
+              type: number
+              format: decimal
+            total_cost_cny:
+              type: number
+              format: decimal
+            total_cost_local:
+              type: number
+              format: decimal
+            exchange_rate:
+              type: number
+              format: decimal
+        suggested_prices:
+          type: object
+          properties:
+            minimum_price:
+              type: number
+              format: decimal
+              description: 保本价
+            recommended_price:
+              type: number
+              format: decimal
+              description: 建议售价
+            premium_price:
+              type: number
+              format: decimal
+              description: 高利润价
+        profit_simulation:
+          type: array
+          items:
+            type: object
+            properties:
+              strategy:
+                type: string
+              sale_price:
+                type: number
+                format: decimal
+              profit_cny:
+                type: number
+                format: decimal
+              profit_rate:
+                type: number
+                format: decimal
+
+    PricingSuggestion:
+      type: object
+      properties:
+        product_id:
+          type: string
+          format: uuid
+        competitor_avg_price:
+          type: number
+          format: decimal
+        competitor_price_range:
+          type: object
+          properties:
+            min:
+              type: number
+              format: decimal
+            max:
+              type: number
+              format: decimal
+            median:
+              type: number
+              format: decimal
+        suggested_price:
+          type: number
+          format: decimal
+        confidence:
+          type: number
+          description: 建议置信度(0-1)
+
+    PurchaseOrder:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        alibaba_order_id:
+          type: string
+          nullable: true
+        supplier_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, ordered, shipped, received]
+        total_amount:
+          type: number
+          format: decimal
+        linked_order_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        created_at:
+          type: string
+          format: date-time
+
+    FinanceSummary:
+      type: object
+      properties:
+        total_revenue:
+          type: number
+          format: decimal
+        total_cost:
+          type: number
+          format: decimal
+        net_profit:
+          type: number
+          format: decimal
+        profit_rate:
+          type: number
+          format: decimal
+        order_count:
+          type: integer
+        avg_order_value:
+          type: number
+          format: decimal
+        refund_rate:
+          type: number
+          format: decimal
+        period:
+          type: string
+
+    PaginatedProducts:
+      allOf:
+        - $ref: "#/components/schemas/PaginatedBase"
+        - type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/Product"
+
+    PaginatedOrders:
+      allOf:
+        - $ref: "#/components/schemas/PaginatedBase"
+        - type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/Order"
+
+    PaginatedBase:
+      type: object
+      properties:
+        items:
+          type: array
+        total:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+
+    PaginatedResponse:
+      allOf:
+        - $ref: "#/components/schemas/PaginatedBase"
+
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        detail:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                  message:
+                    type: string
+
+  responses:
+    Unauthorized:
+      description: 未授权
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: 资源不存在
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    BadRequest:
+      description: 请求参数错误
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
