@@ -15,35 +15,35 @@ class AISettings(BaseSettings):
     )
     
     # OpenAI配置
-    OPENAI_API_KEY: str = ""
-    OPENAI_BASE_URL: Optional[str] = None
-    OPENAI_MODEL: str = "gpt-4o"
-    OPENAI_FALLBACK_MODEL: str = "gpt-3.5-turbo"
+    openai_api_key: str = ""
+    openai_base_url: Optional[str] = None
+    openai_model: str = "gpt-4o-mini"
+    openai_fallback_model: str = "gpt-3.5-turbo"
     
     # Stable Diffusion配置
-    SD_API_URL: Optional[str] = None
-    SD_MODEL: str = "sdxl-turbo"
+    sd_api_url: Optional[str] = None
+    sd_model: str = "sdxl-turbo"
     
     # OCR配置
-    OCR_ENGINE: str = "paddle"  # paddle 或 tesseract
-    OCR_LANG: str = "ch"  # ch, en, etc.
+    ocr_engine: str = "paddle"  # paddle 或 tesseract
+    ocr_lang: str = "ch"  # ch, en, etc.
     
     # Mock模式(开发测试用)
-    ENABLE_MOCK_AI: bool = True
+    enable_mock_ai: bool = True
     
     # 翻译设置
-    DEFAULT_TARGET_LANGS: list[str] = ["en", "th", "vi", "id", "ms"]
-    MAX_TRANSLATION_LENGTH: int = 2000
-    TRANSLATION_TIMEOUT: int = 30  # 秒
+    default_target_langs: list[str] = ["en", "th", "vi", "id", "ms"]
+    max_translation_length: int = 2000
+    translation_timeout: int = 30  # 秒
     
     # 重试配置
-    MAX_RETRIES: int = 3
-    RETRY_DELAY: float = 1.0  # 秒
-    EXPONENTIAL_BACKOFF_BASE: float = 2.0
+    max_retries: int = 3
+    retry_delay: float = 1.0  # 秒
+    exponential_backoff_base: float = 2.0
     
     # Rate Limit
-    RATE_LIMIT_REQUESTS: int = 60  # 每分钟请求数
-    RATE_LIMIT_PERIOD: int = 60  # 秒
+    rate_limit_requests: int = 60  # 每分钟请求数
+    rate_limit_period: int = 60  # 秒
 
 
 # 全局单例

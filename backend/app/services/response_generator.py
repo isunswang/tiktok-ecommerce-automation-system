@@ -15,9 +15,9 @@ class ResponseGenerator:
     """AI response generation service."""
 
     def __init__(self):
-        self.openai_client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
-        self.model = getattr(settings, 'RESPONSE_GENERATION_MODEL', 'gpt-4o')
-        self.mock_mode = getattr(settings, 'OPENAI_MOCK_MODE', True)
+        self.openai_client = AsyncOpenAI(api_key=settings.openai_api_key)
+        self.model = getattr(settings, 'llm_model', 'gpt-4o-mini')
+        self.mock_mode = not settings.openai_api_key or getattr(settings, 'llm_mock_mode', True)
 
     async def generate_response(
         self,

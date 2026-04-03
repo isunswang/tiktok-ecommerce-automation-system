@@ -14,9 +14,9 @@ class SentimentAnalyzer:
     """Sentiment analysis service using GPT-4o."""
 
     def __init__(self):
-        self.openai_client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
-        self.model = getattr(settings, 'SENTIMENT_ANALYSIS_MODEL', 'gpt-4o-mini')
-        self.mock_mode = getattr(settings, 'OPENAI_MOCK_MODE', True)
+        self.openai_client = AsyncOpenAI(api_key=settings.openai_api_key)
+        self.model = getattr(settings, 'llm_model', 'gpt-4o-mini')
+        self.mock_mode = not settings.openai_api_key or getattr(settings, 'llm_mock_mode', True)
 
     async def analyze_sentiment(
         self,

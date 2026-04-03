@@ -48,16 +48,16 @@ class TranslationService:
     def __init__(self, api_key: Optional[str] = None, base_url: Optional[str] = None):
         """初始化翻译服务"""
         self.settings = get_ai_settings()
-        self.api_key = api_key or self.settings.OPENAI_API_KEY
-        self.base_url = base_url or self.settings.OPENAI_BASE_URL
-        self.model = self.settings.OPENAI_MODEL
-        self.fallback_model = self.settings.OPENAI_FALLBACK_MODEL
+        self.api_key = api_key or self.settings.openai_api_key
+        self.base_url = base_url or self.settings.openai_base_url
+        self.model = self.settings.openai_model
+        self.fallback_model = self.settings.openai_fallback_model
         
-        if not self.settings.ENABLE_MOCK_AI and not self.api_key:
+        if not self.settings.enable_mock_ai and not self.api_key:
             raise ValueError("OpenAI API key is required when Mock mode is disabled")
         
         self.client = None
-        if not self.settings.ENABLE_MOCK_AI:
+        if not self.settings.enable_mock_ai:
             self.client = AsyncOpenAI(
                 api_key=self.api_key,
                 base_url=self.base_url,
@@ -80,7 +80,7 @@ class TranslationService:
             raise ValueError(f"Text exceeds maximum length of {self.settings.MAX_TRANSLATION_LENGTH}")
         
         # Mock模式
-        if self.settings.ENABLE_MOCK_AI:
+        if self.settings.enable_mock_ai:
             return self._mock_translate(text, source_lang, target_lang, context)
         
         # 获取prompt模板
@@ -120,7 +120,7 @@ class TranslationService:
             return []
         
         # Mock模式
-        if self.settings.ENABLE_MOCK_AI:
+        if self.settings.enable_mock_ai:
             return [
                 self._mock_translate(text, source_lang, target_lang, context)
                 for text in texts
