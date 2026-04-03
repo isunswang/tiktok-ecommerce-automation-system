@@ -85,11 +85,16 @@ async function handleLogin() {
     if (!valid) return
     loading.value = true
     try {
+      console.log('开始登录...')
       await userStore.login(loginForm.username, loginForm.password)
+      console.log('登录成功，token已保存:', localStorage.getItem('token'))
       ElMessage.success('登录成功')
       const redirect = (route.query.redirect as string) || '/dashboard'
-      router.push(redirect)
+      console.log('准备跳转到:', redirect)
+      await router.push(redirect)
+      console.log('跳转完成')
     } catch (err: unknown) {
+      console.error('登录错误:', err)
       const message = err instanceof Error ? err.message : '登录失败，请检查用户名和密码'
       ElMessage.error(message)
     } finally {
