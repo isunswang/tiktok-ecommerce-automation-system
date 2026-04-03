@@ -5,7 +5,6 @@ itemadapter==0.8.0
 # Celery and Message Queue
 celery==5.3.6
 redis==5.0.1
-kombu==5.3.3
 
 # Database
 asyncpg==0.29.0
