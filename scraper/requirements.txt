@@ -1,3 +1,18 @@
 # Scrapy Dependencies
 scrapy==2.11.2
 itemadapter==0.8.0
+
+# Celery and Message Queue
+celery==5.3.6
+redis==5.0.1
+kombu==5.3.3
+
+# Database
+asyncpg==0.29.0
+sqlalchemy==2.0.25
+alembic==1.13.1
+
+# Utilities
+python-dotenv==1.0.0
+pydantic==2.5.3
+pydantic-settings==2.1.0
