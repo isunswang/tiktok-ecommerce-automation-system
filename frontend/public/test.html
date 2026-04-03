@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>前端测试页面</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .test-item {
+      background: white;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .success { color: #67c23a; }
+    .error { color: #f56c6c; }
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      border: none;
+      border-radius: 4px;
+      background: #409eff;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover { background: #66b1ff; }
+    #result { white-space: pre-wrap; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>TikTok跨境电商系统 - 前端测试</h1>
+  
+  <div class="test-item">
+    <h3>1. 基础测试</h3>
+    <p>页面加载时间: <span id="loadTime"></span></p>
+    <p>浏览器: <span id="userAgent"></span></p>
+  </div>
+
+  <div class="test-item">
+    <h3>2. API连接测试</h3>
+    <button onclick="testHealth()">测试健康检查</button>
+    <button onclick="testLogin()">测试登录API</button>
+    <div id="result"></div>
+  </div>
+
+  <div class="test-item">
+    <h3>3. Vue应用测试</h3>
+    <button onclick="location.href='/'">返回主应用</button>
+    <p id="vueStatus"></p>
+  </div>
+
+  <script>
+    // 显示加载时间
+    document.getElementById('loadTime').textContent = new Date().toLocaleString();
+    document.getElementById('userAgent').textContent = navigator.userAgent;
+
+    async function testHealth() {
+      const result = document.getElementById('result');
+      result.textContent = '测试中...';
+      try {
+        const response = await fetch('/v1/health');
+        const data = await response.json();
+        result.innerHTML = '<span class="success">✓ 健康检查成功</span>\n' + JSON.stringify(data, null, 2);
+      } catch (error) {
+        result.innerHTML = '<span class="error">✗ 健康检查失败</span>\n' + error.message;
+      }
+    }
+
+    async function testLogin() {
+      const result = document.getElementById('result');
+      result.textContent = '登录中...';
+      try {
+        const response = await fetch('/api/v1/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: 'admin', password: 'Admin@2026' })
+        });
+        const data = await response.json();
+        if (data.access_token) {
+          result.innerHTML = '<span class="success">✓ 登录成功</span>\nToken: ' + data.access_token.substring(0, 20) + '...';
+        } else {
+          result.innerHTML = '<span class="error">✗ 登录失败</span>\n' + JSON.stringify(data, null, 2);
+        }
+      } catch (error) {
+        result.innerHTML = '<span class="error">✗ 登录失败</span>\n' + error.message;
+      }
+    }
+
+    // 检查Vue应用状态
+    setTimeout(() => {
+      const app = document.getElementById('app');
+      const vueStatus = document.getElementById('vueStatus');
+      if (app) {
+        vueStatus.innerHTML = '<span class="success">✓ Vue挂载点存在</span>';
+      } else {
+        vueStatus.innerHTML = '<span class="error">✗ Vue挂载点不存在</span>';
+      }
+    }, 100);
+  </script>
+</body>
+</html>
