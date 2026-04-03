@@ -3,11 +3,13 @@
 import logging
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_db, get_current_user
+from app.models.user import User
 from app.services.intent_service import IntentClassifier, IntentType
 from app.services.faq_service import FAQService
 from app.services.conversation_service import ConversationManager, ConversationState
@@ -16,7 +18,7 @@ from app.services.sentiment_service import SentimentAnalyzer
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter()
+router = APIRouter(prefix="/v1/customer-service", tags=["CustomerService"])
 
 
 # Request/Response schemas
@@ -58,6 +60,48 @@ class SessionResponse(BaseModel):
 intent_classifier = IntentClassifier()
 response_generator = ResponseGenerator()
 sentiment_analyzer = SentimentAnalyzer()
+
+
+@router.get("/sessions")
+async def list_sessions(
+    status: Optional[str] = Query(None),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """List customer service sessions with pagination."""
+    from app.models.customer_service import CSSession
+    
+    query = select(CSSession)
+    count_query = select(func.count()).select_from(CSSession)
+    
+    if status:
+        query = query.where(CSSession.status == status)
+        count_query = count_query.where(CSSession.status == status)
+    
+    total_result = await db.execute(count_query)
+    total = total_result.scalar() or 0
+    
+    offset = (page - 1) * page_size
+    query = query.order_by(CSSession.created_at.desc()).offset(offset).limit(page_size)
+    result = await db.execute(query)
+    sessions = result.scalars().all()
+    
+    items = [
+        {
+            "id": str(s.id),
+            "buyer_id": str(s.buyer_id),
+            "buyer_name": s.buyer_name or "",
+            "status": s.status,
+            "ai_resolved": s.ai_resolved,
+            "order_id": str(s.order_id) if s.order_id else None,
+            "created_at": s.created_at.isoformat() if s.created_at else "",
+        }
+        for s in sessions
+    ]
+    
+    return {"items": items, "total": total, "page": page, "page_size": page_size}
 
 
 @router.post("/sessions", response_model=SessionResponse)

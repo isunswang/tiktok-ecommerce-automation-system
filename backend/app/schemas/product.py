@@ -1,8 +1,10 @@
 """Pydantic schemas for products."""
 
+from datetime import datetime
 from decimal import Decimal
+from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_serializer
 
 
 class ProductResponse(BaseModel):
@@ -20,6 +22,18 @@ class ProductResponse(BaseModel):
     updated_at: str | None = None
 
     model_config = {"from_attributes": True}
+
+    @field_serializer("id", "category_id")
+    def serialize_uuid(self, value: UUID | str | None) -> str | None:
+        if value is None:
+            return None
+        return str(value)
+
+    @field_serializer("created_at", "updated_at")
+    def serialize_datetime(self, value: datetime | str | None) -> str | None:
+        if value is None:
+            return None
+        return value.isoformat() if isinstance(value, datetime) else value
 
 
 class ProductCreate(BaseModel):
