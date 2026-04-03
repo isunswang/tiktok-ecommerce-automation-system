@@ -4,11 +4,13 @@ import request from '@/api/request'
 import router from '@/router'
 
 interface UserInfo {
-  id: number
+  id: string  // UUID是字符串类型
   username: string
   nickname: string
-  avatar: string
+  avatar?: string  // 可选字段
   role: string
+  is_active?: boolean
+  created_at?: string
 }
 
 interface LoginParams {
