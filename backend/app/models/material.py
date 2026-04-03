@@ -21,7 +21,7 @@ class Material(Base):
     language: Mapped[str] = mapped_column(String(10), default="en", nullable=False)
     content: Mapped[str | None] = mapped_column(Text, nullable=True)  # 文本内容
     file_url: Mapped[str | None] = mapped_column(String(1000), nullable=True)  # 图片/视频URL
-    metadata: Mapped[dict | None] = mapped_column(JSONB, nullable=True)  # 额外元数据
+    material_metadata: Mapped[dict | None] = mapped_column("metadata", JSONB, nullable=True)  # 额外元数据
     
     # Relationships
     product: Mapped["Product"] = relationship("Product", back_populates="materials")
