@@ -1,5 +1,6 @@
 """Customer service models: CSSession, CSMessage and Ticket."""
 
+import uuid
 from enum import StrEnum
 
 from sqlalchemy import ForeignKey, Integer, String, Text

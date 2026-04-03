@@ -1,5 +1,6 @@
 """Finance models: FinanceRecord and ExchangeRate."""
 
+import uuid
 from decimal import Decimal
 from enum import StrEnum
 

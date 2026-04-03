@@ -1,5 +1,6 @@
 """SKU mapping and match record models for order fulfillment."""
 
+import uuid
 from decimal import Decimal
 from enum import StrEnum
 

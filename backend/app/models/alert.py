@@ -1,5 +1,6 @@
 """Alert models for anomaly detection and notifications."""
 
+import uuid
 from enum import StrEnum
 
 from sqlalchemy import ForeignKey, String, Text, Integer

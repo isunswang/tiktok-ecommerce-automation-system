@@ -1,5 +1,6 @@
 """Order, OrderItem and OrderStatusHistory models."""
 
+import uuid
 from decimal import Decimal
 from enum import StrEnum
 

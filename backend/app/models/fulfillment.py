@@ -1,5 +1,6 @@
 """Fulfillment models: PurchaseOrder and Shipment."""
 
+import uuid
 from decimal import Decimal
 from enum import StrEnum
 
