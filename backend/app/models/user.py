@@ -32,10 +32,8 @@ class User(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     last_login_at: Mapped[str | None] = mapped_column(String(50), nullable=True)
 
-    # Relationships
-    role_rel: Mapped["Role | None"] = relationship(
-        "Role", back_populates="users", foreign_keys=[role], primaryjoin="User.role==Role.name"
-    )
+    # Note: role field is just a string, not a foreign key relationship
+    # role_rel relationship removed to avoid FK issues
 
     def __repr__(self) -> str:
         return f"<User {self.username}>"
@@ -51,8 +49,8 @@ class Role(Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     permissions: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    # Relationships
-    users: Mapped[list["User"]] = relationship("User", back_populates="role_rel")
+    # No direct relationship to users since User.role is a string field
+    # Users are linked by role name, not by foreign key
 
     def __repr__(self) -> str:
         return f"<Role {self.name}>"
