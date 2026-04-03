@@ -1,5 +1,6 @@
 """Product, SKU, Category, Supplier and ProductImage models."""
 
+import uuid
 from decimal import Decimal
 from enum import StrEnum
 
