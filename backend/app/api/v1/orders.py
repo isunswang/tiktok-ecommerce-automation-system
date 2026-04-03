@@ -41,15 +41,30 @@ async def list_orders(
     result = await db.execute(query)
     orders = result.scalars().all()
 
+    items = []
+    for o in orders:
+        items.append({
+            "id": str(o.id),
+            "tiktok_order_id": o.tiktok_order_id or "",
+            "status": o.status,
+            "total_amount": str(o.total_amount),
+            "currency": o.currency,
+            "buyer_name": o.buyer_name or "",
+            "shipping_address": o.shipping_address or {},
+            "tracking_number": o.tracking_number or "",
+            "remark": o.remark or "",
+            "created_at": o.created_at.isoformat() if o.created_at else "",
+            "updated_at": o.updated_at.isoformat() if o.updated_at else "",
+        })
     return PaginatedResponse(
-        items=[OrderResponse.model_validate(o, from_attributes=True) for o in orders],
+        items=items,
         total=total,
         page=pagination.page,
         page_size=pagination.page_size,
     )
 
 
-@router.get("/{order_id}", response_model=OrderResponse)
+@router.get("/{order_id}")
 async def get_order(
     order_id: UUID,
     db: AsyncSession = Depends(get_db),
@@ -60,7 +75,19 @@ async def get_order(
     order = result.scalar_one_or_none()
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
-    return OrderResponse.model_validate(order, from_attributes=True)
+    return {
+        "id": str(order.id),
+        "tiktok_order_id": order.tiktok_order_id or "",
+        "status": order.status,
+        "total_amount": str(order.total_amount),
+        "currency": order.currency,
+        "buyer_name": order.buyer_name or "",
+        "shipping_address": order.shipping_address or {},
+        "tracking_number": order.tracking_number or "",
+        "remark": order.remark or "",
+        "created_at": order.created_at.isoformat() if order.created_at else "",
+        "updated_at": order.updated_at.isoformat() if order.updated_at else "",
+    }
 
 
 @router.put("/{order_id}/status")

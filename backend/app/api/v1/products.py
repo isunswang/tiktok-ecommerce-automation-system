@@ -43,15 +43,31 @@ async def list_products(
     result = await db.execute(query)
     products = result.scalars().all()
 
+    items = []
+    for p in products:
+        items.append({
+            "id": str(p.id),
+            "name": p.name,
+            "description": p.description or "",
+            "category_id": str(p.category_id) if p.category_id else None,
+            "cost_price": str(p.cost_price),
+            "sale_price": str(p.sale_price) if p.sale_price else None,
+            "status": p.status,
+            "score": str(p.score) if p.score else None,
+            "tiktok_product_id": p.tiktok_product_id or "",
+            "source_url": p.source_url or "",
+            "created_at": p.created_at.isoformat() if p.created_at else "",
+            "updated_at": p.updated_at.isoformat() if p.updated_at else "",
+        })
     return PaginatedResponse(
-        items=[ProductResponse.model_validate(p, from_attributes=True) for p in products],
+        items=items,
         total=total,
         page=pagination.page,
         page_size=pagination.page_size,
     )
 
 
-@router.post("", response_model=ProductResponse, status_code=status.HTTP_201_CREATED)
+@router.post("")
 async def create_product(
     data: ProductCreate,
     db: AsyncSession = Depends(get_db),
@@ -62,10 +78,23 @@ async def create_product(
     db.add(product)
     await db.commit()
     await db.refresh(product)
-    return ProductResponse.model_validate(product, from_attributes=True)
+    return {
+        "id": str(product.id),
+        "name": product.name,
+        "description": product.description or "",
+        "category_id": str(product.category_id) if product.category_id else None,
+        "cost_price": str(product.cost_price),
+        "sale_price": str(product.sale_price) if product.sale_price else None,
+        "status": product.status,
+        "score": str(product.score) if product.score else None,
+        "tiktok_product_id": product.tiktok_product_id or "",
+        "source_url": product.source_url or "",
+        "created_at": product.created_at.isoformat() if product.created_at else "",
+        "updated_at": product.updated_at.isoformat() if product.updated_at else "",
+    }
 
 
-@router.get("/{product_id}", response_model=ProductResponse)
+@router.get("/{product_id}")
 async def get_product(
     product_id: UUID,
     db: AsyncSession = Depends(get_db),
@@ -76,10 +105,23 @@ async def get_product(
     product = result.scalar_one_or_none()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
-    return ProductResponse.model_validate(product, from_attributes=True)
+    return {
+        "id": str(product.id),
+        "name": product.name,
+        "description": product.description or "",
+        "category_id": str(product.category_id) if product.category_id else None,
+        "cost_price": str(product.cost_price),
+        "sale_price": str(product.sale_price) if product.sale_price else None,
+        "status": product.status,
+        "score": str(product.score) if product.score else None,
+        "tiktok_product_id": product.tiktok_product_id or "",
+        "source_url": product.source_url or "",
+        "created_at": product.created_at.isoformat() if product.created_at else "",
+        "updated_at": product.updated_at.isoformat() if product.updated_at else "",
+    }
 
 
-@router.put("/{product_id}", response_model=ProductResponse)
+@router.put("/{product_id}")
 async def update_product(
     product_id: UUID,
     data: ProductUpdate,
@@ -98,4 +140,17 @@ async def update_product(
 
     await db.commit()
     await db.refresh(product)
-    return ProductResponse.model_validate(product, from_attributes=True)
+    return {
+        "id": str(product.id),
+        "name": product.name,
+        "description": product.description or "",
+        "category_id": str(product.category_id) if product.category_id else None,
+        "cost_price": str(product.cost_price),
+        "sale_price": str(product.sale_price) if product.sale_price else None,
+        "status": product.status,
+        "score": str(product.score) if product.score else None,
+        "tiktok_product_id": product.tiktok_product_id or "",
+        "source_url": product.source_url or "",
+        "created_at": product.created_at.isoformat() if product.created_at else "",
+        "updated_at": product.updated_at.isoformat() if product.updated_at else "",
+    }
