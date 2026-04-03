@@ -45,6 +45,15 @@ class Settings(BaseSettings):
     celery_broker_url: str = "amqp://tiktok_ops:tiktok_ops_dev@localhost:5672/"
     celery_result_backend: str = "redis://localhost:6379/2"
 
+    # LLM / OpenAI
+    openai_api_key: str = Field(
+        default="",
+        description="OpenAI API key for LLM operations",
+    )
+    llm_model: str = "gpt-4o-mini"
+    llm_base_url: str = "https://api.openai.com/v1"
+    llm_temperature: float = 0.7
+
     # JWT
     jwt_secret_key: str = "change-me-jwt-secret"
     jwt_algorithm: str = "HS256"
