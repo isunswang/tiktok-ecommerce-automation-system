@@ -78,6 +78,30 @@ export function getCsSessions(params?: Record<string, unknown>) {
   return request.get('/v1/customer-service/sessions', { params })
 }
 
+export function getCsSession(id: string) {
+  return request.get(`/v1/customer-service/sessions/${id}`)
+}
+
+export function sendCsMessage(data: Record<string, unknown>) {
+  return request.post('/v1/customer-service/messages', data)
+}
+
+export function createCsSession(data: Record<string, unknown>) {
+  return request.post('/v1/customer-service/sessions', data)
+}
+
+export function endCsSession(id: string) {
+  return request.post(`/v1/customer-service/sessions/${id}/end`)
+}
+
+export function transferCsSession(id: string, reason?: string) {
+  return request.post(`/v1/customer-service/sessions/${id}/transfer`, null, { params: { reason } })
+}
+
+export function searchFaqs(params?: Record<string, unknown>) {
+  return request.get('/v1/customer-service/faqs', { params })
+}
+
 // ========== Finance ==========
 export function getFinanceSummary(params?: Record<string, unknown>) {
   return request.get('/v1/finance/summary', { params })
@@ -90,6 +114,18 @@ export function getTransactions(params?: Record<string, unknown>) {
 // ========== Dashboard ==========
 export function getDashboardStats() {
   return request.get('/v1/dashboard/stats')
+}
+
+export function getDashboardRecentOrders() {
+  return request.get('/v1/dashboard/recent-orders')
+}
+
+export function getDashboardSalesTrend() {
+  return request.get('/v1/dashboard/sales-trend')
+}
+
+export function getDashboardOrderDistribution() {
+  return request.get('/v1/dashboard/order-status-distribution')
 }
 
 export function healthCheck() {

@@ -16,6 +16,7 @@ from app.api.v1.modules import (
     finance_router,
 )
 from app.api.v1.customer_service import router as customer_service_router
+from app.api.v1.dashboard import router as dashboard_router
 
 api_router.include_router(auth_router)
 api_router.include_router(products_router)
@@ -26,3 +27,4 @@ api_router.include_router(listing_router)
 api_router.include_router(fulfillment_router)
 api_router.include_router(customer_service_router, prefix="/v1/customer-service", tags=["CustomerService"])
 api_router.include_router(finance_router)
+api_router.include_router(dashboard_router)
