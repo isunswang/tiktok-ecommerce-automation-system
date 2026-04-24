@@ -64,3 +64,10 @@ alembic/versions/*.pyc
 *.pt
 *.onnx
 .models/
+
+# Scraper output
+scraper/output/
+scraper/httpcache/
+
+# Codebuddy
+.codebuddy/

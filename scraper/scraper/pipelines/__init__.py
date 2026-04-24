@@ -51,6 +51,8 @@ class JsonWriterPipeline:
         self.file = None
 
     def open_spider(self, spider):
+        import os
+        os.makedirs(os.path.dirname(self.output_file) or ".", exist_ok=True)
         self.file = open(self.output_file, "w", encoding="utf-8")
 
     def close_spider(self, spider):
@@ -64,20 +66,18 @@ class JsonWriterPipeline:
         return item
 
 
-class DatabaseStoragePipeline:
-    """Store scraped items into PostgreSQL database.
-
-    This pipeline is a placeholder - actual DB storage will use
-    the backend service API or direct SQLAlchemy async calls.
-    """
-
-    def process_item(self, item, spider):
-        # TODO: Implement database storage
-        # Will connect to backend API or use shared database
-        logger.info(f"Would store item: {item.get('product_id')}")
-        return item
-
-
 class DropItem(Exception):
     """Raised when an item should be dropped from the pipeline."""
     pass
+
+
+# Import database pipeline
+from .database_pipeline import DatabasePipeline
+
+__all__ = [
+    "DataCleanPipeline",
+    "DuplicatesFilterPipeline",
+    "JsonWriterPipeline",
+    "DatabasePipeline",
+    "DropItem",
+]
